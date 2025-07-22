@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-docker-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-docker-app
+  template:
+    metadata:
+      labels:
+        app: my-docker-app
+    spec:
+      containers:
+      - name: app
+        image: <+artifact.image>  # Harness will replace this with your built image
+        ports:
+        - containerPort: 3000
+        env:
+        - name: APP_VERSION
+          value: "<+pipeline.variables.appVersion>"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-docker-app-service
+spec:
+  selector:
+    app: my-docker-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
